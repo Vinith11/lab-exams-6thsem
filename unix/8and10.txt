@@ -1,0 +1,13 @@
+#include "ns3/netanim-module.h"
+
+AnimationInterface anim("first, xml");
+AsciiTraceHelper ascii;
+point.EnableAsciiAll(ascii.CreateFileStream("first.tr"));
+pointToPoint.EnablePcapAll("first");
+
+
+To Run:
+1. Run in cmd in ns-3.28 
+    ./waf -run scratch/first
+2. In netanim-3.108 folder, run
+    ./NetAnim

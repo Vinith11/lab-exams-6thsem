@@ -1,0 +1,47 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <strings.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+
+#define PORT 4444
+
+int main()
+{
+  int listenfd, connfd;
+  struct sockaddr_in servAddr, cliAddr;
+  socklen_t clilen;
+  char buffer[1024];
+
+  listenfd = socket(AF_INET, SOCK_STREAM, 0);
+  printf("[+] Server socket created successfully\n");
+  bzero(&servAddr, sizeof(servAddr));
+  servAddr.sin_family = AF_INET;
+  servAddr.sin_port = htons(PORT);
+  servAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+
+  bind(listenfd, (struct sockaddr *)&servAddr, sizeof(servAddr));
+  printf("[+] Bind to PORT %d successful\n", PORT);
+
+  listen(listenfd, 5);
+  printf("[+] Listening...\n");
+
+  connfd = accept(listenfd, (struct sockaddr *)&cliAddr, &clilen);
+
+  strcpy(buffer, "Hello World");
+  send(connfd, buffer, strlen(buffer), 0);
+  printf("[+] Data sent to client: %s\n", buffer);
+
+  printf("[+] Closing the connection\n");
+  return 0;
+}
+
+// # gcc TW7Server.c
+// # ./a.out
+// [+] Server socket created successfully
+// [+] Bind to PORT 4444 successful
+// [+] Listening...
+// [+] Data sent to client: Hello World
+// [+] Closing the connection
