@@ -1,95 +1,66 @@
+#TW 7
 
 import numpy as np
-
-# Activation function: Sigmoid
-
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
-# Derivative of the sigmoid function
-
-
 def sigmoid_derivative(x):
     return x * (1 - x)
 
+# Input datasets
+inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+expected_output = np.array([[0], [1], [1], [0]])
+epochs = 10000
+lr = 0.5
+inputLayerNeurons, hiddenLayerNeurons, outputLayerNeurons = 2, 2, 1
 
-class SimpleNeuralNetwork:
-    def __init__(self, weights, X, y, lr=1):
-        # Weights between input layer and hidden layer
-        self.X = X
-        self.y = y
-        self.lr = lr
-        self.w13 = weights['w13']
-        self.w14 = weights['w14']
-        self.w23 = weights['w23']
-        self.w24 = weights['w24']
+# Random weights and bias initialization
+hidden_weights = np.random.uniform(size=(inputLayerNeurons, hiddenLayerNeurons))
+hidden_bias = np.random.uniform(size=(1, hiddenLayerNeurons))
+output_weights = np.random.uniform(size=(hiddenLayerNeurons, outputLayerNeurons))
+output_bias = np.random.uniform(size=(1, outputLayerNeurons))
 
-        # Weights between hidden layer and output layer
-        self.w35 = weights['w35']
-        self.w45 = weights['w45']
+print("Initial hidden weights: ", end='')
+print(*hidden_weights)
+print("Initial hidden biases: ", end='')
+print(*hidden_bias)
+print("Initial output weights: ", end='')
+print(*output_weights)
+print("Initial output biases: ", end='')
+print(*output_bias)
 
-    def forward(self):
-        # Forw
-        a3 = self.X[0]*self.w13 + self.X[1]*self.w23
-        self.y3 = sigmoid(a3)
-        a4 = self.X[0]*self.w14 + self.X[1]*self.w24
-        self.y4 = sigmoid(a4)
-        a5 = self.y3*self.w35 + self.y4*self.w45
-        self.y5 = sigmoid(a5)
-        return self.y5
+# Training algorithm
+for _ in range(epochs):
+    # Forward Propagation
+    hidden_layer_activation = np.dot(inputs, hidden_weights)
+    hidden_layer_activation += hidden_bias
+    hidden_layer_output = sigmoid(hidden_layer_activation)
+    
+    output_layer_activation = np.dot(hidden_layer_output, output_weights)
+    output_layer_activation += output_bias
+    predicted_output = sigmoid(output_layer_activation)
 
-    def backward(self, output):
-        # Calculate the error
-        error = self.y - output
-        d5 = error * sigmoid_derivative(output)
+    # Backpropagation
+    error = expected_output - predicted_output
+    d_predicted_output = error * sigmoid_derivative(predicted_output)
+    
+    error_hidden_layer = d_predicted_output.dot(output_weights.T)
+    d_hidden_layer = error_hidden_layer * sigmoid_derivative(hidden_layer_output)
+    
+    # Updating Weights and Biases
+    output_weights += hidden_layer_output.T.dot(d_predicted_output) * lr
+    output_bias += np.sum(d_predicted_output, axis=0, keepdims=True) * lr
+    hidden_weights += inputs.T.dot(d_hidden_layer) * lr
+    hidden_bias += np.sum(d_hidden_layer, axis=0, keepdims=True) * lr
 
-        # Calculate error for hidden layer
-        d3 = d5*self.w35*sigmoid_derivative(self.y3)
-        d4 = d5*self.w45*sigmoid_derivative(self.y4)
-
-        # Update weights
-        self.w35 += self.y3*d5*self.lr
-        self.w45 += self.y4*d5*self.lr
-        # hidden layer
-        self.w13 += self.X[0]*d3*self.lr
-        self.w14 += self.X[0]*d4*self.lr
-        self.w23 += self.X[1]*d3*self.lr
-        self.w24 += self.X[1]*d4*self.lr
-
-    def train(self, epochs=10000):
-        for epoch in range(epochs):
-            # Forward pass
-            output = self.forward()
-
-            # Backward pass
-            self.backward(output)
-
-            # Print loss and weights
-            loss = np.mean((self.y - output) ** 2)
-            print(f'Epoch {epoch}, Loss: {loss:.4f}')
-            print(f"Weights: w13: {self.w13}, w14: {self.w14}, w23: {self.w23}, w24: {self.w24}, w35: {self.w35}, w45: {self.w45}, \n{output}")
-
-
-# Example usage
-if __name__ == "__main__":
-    X = [0.35, 0.7]
-    y = 0.5
-
-    # Define initial weights
-    initial_weights = {
-        'w13': 0.2,
-        'w14': 0.3,
-        'w23': 0.2,
-        'w24': 0.3,
-        'w35': 0.3,
-        'w45': 0.9
-    }
-
-    nn = SimpleNeuralNetwork(initial_weights, X, y, 1)
-    nn.train(epochs=10)
-
-    # Test the network
-    # Print predictions
-    print("Predictions:")
-    print(nn.forward())
+print("Final hidden weights: ", end='')
+print(*hidden_weights)
+print("Final hidden bias: ", end='')
+print(*hidden_bias)
+print("Final output weights: ", end='')
+print(*output_weights)
+print("Final output bias: ", end='')
+print(*output_bias)
+print("\nOutput from neural network after epochs :" + str(epochs))
+print(*predicted_output)
